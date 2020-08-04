@@ -6,7 +6,7 @@ const rateLimit = require("express-rate-limit");
 const router = new express.Router()
 
 let corsOptions = {
-    origin: 'https://viaplanner.ca', // allow only viaplanner to use the api 
+    origin: 'https://timetable.viaplanner.ca', // allow only viaplanner to use the api 
     optionsSuccessStatus: 200
 }
 

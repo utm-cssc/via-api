@@ -31,9 +31,9 @@ app.get("/", cors(), (req, res) => {
     res.redirect('https://docs.viaplanner.ca/course-api/');
 })
 
-app.get("/status", [cors(), limiter], async (req, res) => {
+app.get("/status/timetable", [cors(), limiter], async (req, res) => {
     try {
-        await axios.get("https://viaplanner.ca")
+        await axios.get("https://timetable.viaplanner.ca")
         res.send({
             schemaVersion: 1,
             label: "Status",
