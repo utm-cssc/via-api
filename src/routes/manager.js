@@ -22,33 +22,37 @@ const limiter = rateLimit({
 const re = /(Class Participation|Lab|Assignment|Term Test|Final Exam|Other|Quiz|Presentations|Final Exam Changed To)(.*|(?:.*\n+)*)(On-going|TBA|TBD|\d{4}-\d{2}-\d{2})+ (\d{1,3}%)\n/gmi;
 
 router.post('/manager/parser', [upload.single('syllabus'), limiter, cors(corsOptions)], (req, res) => {
-  try {
-    PdfData.extract(req.file.buffer, {
-      verbosity: VerbosityLevel.ERRORS, // set the verbosity level for parsing
-      get: { // enable or disable data extraction (all are optional and enabled by default)
-        text: true, // get text of each page
-      },
-    }).then((data) => {
-      let result = []
-      let content = data.text.join();
-      let matches = [...content.matchAll(re)];
-      for (const match of matches) {
-        const item = {
-          type: match[1],
-          description: match[2].trim(),
-          deadline: /\d{4}-\d{2}-\d{2}/.test(match[3]) ? match[3] : null,
-          on_going: match[3] === 'On-going',
-          weight: match[4]
-        }
-        result.push(item);
+  PdfData.extract(req.file.buffer, {
+    verbosity: VerbosityLevel.ERRORS, // set the verbosity level for parsing
+    get: { // enable or disable data extraction (all are optional and enabled by default)
+      text: true, // get text of each page
+    },
+  }).then((data) => {
+    let result = [];
+    let content = data.text.join();
+    let matches = [...content.matchAll(re)];
+    for (const match of matches) {
+      const item = {
+        type: match[1],
+        description: match[2].trim(),
+        deadline: /\d{4}-\d{2}-\d{2}/.test(match[3]) ? match[3] : null,
+        on_going: match[3] === 'On-going',
+        weight: match[4]
       }
+      result.push(item);
+    }
+    if (result.length === 0) {
+      res.status(400).send({
+        message: 'Invalid syllabus format. Cannot parse the uploaded syllabus.'
+      })
+    } else {
       res.status(200).send(result);
-    });
-  } catch (e) {
+    }
+  }).catch(e => {
     res.status(500).send({
       message: e.message
     })
-  }
+  })
 })
 
 module.exports = router
